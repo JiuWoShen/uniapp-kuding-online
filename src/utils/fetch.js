@@ -4,7 +4,12 @@
 import {BASEURL} from './baseurl'
 const fetch = ({url,method='GET',data,header={},tips='正在拼命加载中',isNeedAuth=true})=>{
     // 对token进行处理
-
+    if(isNeedAuth){
+        const my_token = uni.getStorageSync('my_token')
+        if(my_token){
+            header.Authorization = my_token
+        }
+    }
     return new Promise((resolve,reject)=>{
         uni.showLoading({
             title: tips

@@ -62,6 +62,12 @@ export default Vue.extend({
           });
         }
       });
+    },
+    // 跳转到手机登录页面
+    phoneLogin(){
+      uni.navigateTo({
+        url:'/pages/phone-login/index'
+      })
     }
   }
 });
