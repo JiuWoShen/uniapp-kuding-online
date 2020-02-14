@@ -1,6 +1,6 @@
 <template>
     <view class="course-detail-container" v-if="courseDetail">
-        <!-- 封面图 -->
+        <!-- 1.封面图 -->
         <view v-if="!isPlaying" class="cover_image">
             <image :src="courseDetail.course.cover_image_url" mode="" />
             <view class="play">
@@ -8,12 +8,12 @@
                 <text>播放课程简介</text>
             </view>
         </view>
-        <!-- 视频播放 -->
+        <!-- 1.2.视频播放 -->
         <view v-else class="course_video">
             <!-- 自动播放与手动播放 -->
             <video controls id="videoID" :src="courseDetail.course.course_video_url"></video>
         </view>
-        <!-- 简介 -->
+        <!-- 2.简介 -->
         <view class="introduction">
             <view class="title-price">
                 <text>{{courseDetail.course.title}}</text>
@@ -22,6 +22,7 @@
             <text class="introduce">{{courseDetail.course.introduction}}</text>
             <!-- Star子组件 -->
             <view class="star">
+              <stars :score="courseDetail.course.score" />
                 <text>{{courseDetail.course.study_count}}人在学</text>
             </view>
             <view class="study-share">
@@ -29,18 +30,70 @@
                 <button open-type="share" class="share-button" plain></button>
             </view>
         </view>
+        <!-- 3.自定义tab栏 -->
+        <view class="catalog">
+          <view class="head">
+            <text @click="toggleIndex(index)" v-for="(item,index) in menus" :key="index" :class="[index === activeIdex ? 'active' : '']">{{item}}</text>
+          </view>
+          <view class="body">
+            <view class="catelog-container" v-if="activeIdex === 0">
+              <text v-for="(item,index) in courseDetail.videos" :key="item.id">{{index+1}}.{{item.name}}</text>
+              <text v-if="!courseDetail.videos">暂无课程视频哦，请联系客服添加~</text>
+            </view>
+            <view class="lecturer-container" v-else-if="activeIdex === 1">
+              <view v-if="courseDetail.lecturer" class="info">
+                <image :src="courseDetail.lecturer.avatar" alt/>
+                <view class="name-follow">
+                  <text>{{courseDetail.lecturer.name}}</text>
+                  <text>关注人数：{{courseDetail.lecturer.follow_count}}</text>
+                </view>
+                <text @click="followOrUnfollow(courseDetail.lecturer)" :class="[courseDetail.lecturer.is_follow === 0 ? 'unfollow' : 'follow']">{{courseDetail.lecturer.is_follow===0?'未关注':'已关注'}}</text>
+              </view>
+              <view class="introduce" v-if="courseDetail.lecturer">
+                <text>{{courseDetail.lecturer.introduction}}</text>
+              </view>
+              <text v-if="!courseDetail.lecturer" style="color:#636363;font-size:15px">暂无讲师简介哦~</text>
+            </view>
+            <!-- 评论 -->
+            <view v-else class="comment-container">
+              <view class="comment-item" v-for="item in courseDetail.comments" :key="item.id">
+                <view class="info">
+                  <image :src="item.avatar" mode="" />
+                  <view class="nickname-content">
+                    <view style="margin-top:12px;">{{item.nickname}}</view>
+                    <view style="margin-left:20px">
+                      <star :score="item.score" />
+                    </view>
+                    <view>{{item.content}}</view>
+                  </view>
+                  <text class="time">{{item.comment_time}}</text>
+                </view>
+                <!-- 评论点赞 -->
+                <view class="star">
+                  <image @click="likeOrDislike(item)" :src="item.is_like === 1 ? '/static/images/like_normal@2x.png' : '/static/images/like_highlight@2x.png'" alt />
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
     </view>
 </template>
 
 <script lang='ts'>
 import Vue from 'vue'
 import {fetch} from '../../utils/fetch'
+import Stars from '../../components/Stars.vue'
 export default Vue.extend({
+  components:{
+    Stars
+  },
     data(){
         return {
             isPlaying:false,
             id:null,//课程id
-            courseDetail:null //课程详情
+            courseDetail:null, //课程详情
+            menus:['目录','详情介绍','评价'],
+            activeIdex:0  //默认激活索引
         }
     },
     // onload中取奇特跳转页面传过来的参数
@@ -62,6 +115,7 @@ export default Vue.extend({
             const result = await fetch({url:`course/${this.id}`})
             if(result.data.status === 0){
                 this.courseDetail = result.data.message
+                this.menus[2] = `评价(${result.data.message.commentTotal})`
             }
         },
         playVideo(){
@@ -74,8 +128,96 @@ export default Vue.extend({
         // 跳转到播放页面
         gotoStudy(){
             console.log('1111')
+        },
+        // 切换选中的索引
+        toggleIndex(i){
+          this.activeIdex = i
+        },
+        // 关注与取消关注
+        async followOrUnfollow(lecturer){
+            switch (lecturer.is_follow) {
+              case 0:
+                // 未关注点击后关注
+                const res1 = await fetch({
+                  url:'/lecturer/follow',
+                  method:'POST',
+                  data:{
+                    lecturer_id:lecturer.id
+                  }
+                })
+                if(res1.data.status === 0){
+                  uni.showToast({
+                    title:res1.data.message,
+                    icon:'none',
+                    duration:500
+                  })
+                  // 更改模型，变成已关注
+                  lecturer.is_follow = 1
+                }
+                break;
+              case 1:
+                // 已关注点击后取消关注
+                const res2 = await fetch({
+                  url:'/lecturer/unfollow',
+                  method:'POST',
+                  data:{
+                    lecturer_id:lecturer.id
+                  }
+                })
+                if(res2.data.status === 0){
+                  uni.showToast({
+                    title:res2.data.message,
+                    icon:'none',
+                    duration:500
+                  })
+                  // 更改模型，变成取消关注
+                  lecturer.is_follow = 0
+                }
+                break;
+            
+              default:
+                break;
+            }
+        },
+        // 评论点赞与取消点赞
+        async likeOrDislike(comments){
+          switch (comments.is_like) {
+            // 1 不点赞 变为 2点赞
+            case 1:{
+              const res = await fetch({
+                url:'comment/like',
+                method:'POST',
+                data:{
+                  comment_id:comments.id,
+                  is_like:2
+                }
+              })
+              if(res.data.status === 0){
+                // 更改模型数据
+                comments.is_like = 2
+              }
+              break;
+            }
+            case 2:{
+              const res = await fetch({
+                url:'comment/like',
+                method:'POST',
+                data:{
+                  comment_id:comments.id,
+                  is_like:1
+                }
+              })
+              if(res.data.status === 0){
+                comments.is_like = 1
+              }
+              break;
+            }
+              
+            default:
+              break;
+          }
         }
-    }
+    } 
 })
 </script>
 
