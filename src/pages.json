@@ -17,6 +17,9 @@
 			"path": "pages/home/index"
 		},
 		{
+			"path": "pages/search/index"
+		},
+		{
 			"path": "pages/course/index"
 		},
 		{

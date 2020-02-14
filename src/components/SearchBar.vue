@@ -19,7 +19,9 @@ export default Vue.extend({
     },
     methods:{
         goToSearchPage(){
-            console.log(111)
+            uni.navigateTo({
+                url:'/pages/search/index'
+            })
         }
     }
 })
