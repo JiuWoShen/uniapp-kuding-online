@@ -42,7 +42,7 @@ import {fetch} from '../../utils/fetch'
 export default Vue.extend({
     data(){
         return {
-            id:null,
+            id:null,// 当前课程的id
             course_detail:null,
             playingURL:null,
             playingIndex:0,  //现在播放的项
@@ -161,6 +161,21 @@ export default Vue.extend({
           setTimeout(()=>{
             uni.createVideoContext('videoId').play()
           },200)
+
+          // 发送请求-----记录学习进度
+          const result = await fetch({
+            url:'study/video',
+            method:'POST',
+            data:{
+              course_id:this.id,
+              video_id:this.course_detail.videos[i].id
+            }
+          })
+          console.log(result.data)
+          if(result.data.status === 0){
+            this.course_detail.videos[i].is_study = 1
+          }
+
         },
         // 发送请求查看当前课程是否购买过
         async isPlayingRinght(){

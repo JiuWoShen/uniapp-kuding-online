@@ -44,10 +44,20 @@ export default Vue.extend({
     created() {
         this.myForeColor = this.foreColor
     },
-    // 组件中使用mounted--------挂载到实例上去之后调用
+    // 组件中使用mounted--------挂载到实例上去之后调用------------只会执行一次-----无法实现学习后的联动更新----update
     mounted(){
         this.drawCircle()
+
+       /*  Vue.nextTick(()=>{
+            this.drawCircle()
+        }) */
     },
+    /* updated(){
+        // 数据每更新就执行
+        Vue.nextTick(()=>{
+            this.drawCircle()
+        })
+    }, */
     methods:{
         drawCircle(){
             // 根据canvasId拿到上下文

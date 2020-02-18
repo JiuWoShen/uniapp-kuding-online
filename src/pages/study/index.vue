@@ -9,7 +9,7 @@
 		<view class="circle">
             <!-- 宽高要求是数值型数据-------因此使用绑定否则传过去的是字符串类型 -->
             <!-- 给子组件传值需要绑定 -->
-			<circle canvasId="item.sid" :progress="item.study_progress" :width="55" :height="55"></circle>
+			<circle ref="circleRef" canvasId="item.sid" :progress="item.study_progress" :width="55" :height="55"></circle>
 		</view>
 	</view>
 	<view v-if="isEmpty">
@@ -43,6 +43,14 @@ export default Vue.extend({
             if(result.data.status === 0){
                 this.studyProgress = result.data.message
                 this.isEmpty = result.data.message.length === 0
+
+                // 下一个事件循环
+                Vue.nextTick(()=>{
+                  // console.log(this.$refs.circleRef)-------拿到子组件实例
+                  this.$refs.circleRef && this.$refs.circleRef.forEach(child => {
+                    child.drawCircle()
+                  })
+                })
             }
         }
     }
