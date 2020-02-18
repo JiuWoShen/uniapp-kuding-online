@@ -1,7 +1,7 @@
 <template>
     <view class="play-container" v-if="course_detail">
         <view class="cover_image">
-            <video id="videoId" :src="playingURL" controls></video>
+            <video @play="isPower" id="videoId" :src="playingURL" controls></video>
         </view>
         <!-- 基本信息的渲染 -->
         <view class="introduction">
@@ -45,7 +45,8 @@ export default Vue.extend({
             id:null,
             course_detail:null,
             playingURL:null,
-            playingIndex:0  //现在播放的项
+            playingIndex:0,  //现在播放的项
+            isValidatePlay:false//是否进行过校验
         }
     },
     onLoad(options){
@@ -123,6 +124,11 @@ export default Vue.extend({
         evaluate(){
             console.log('111')
         },
+        isPower(){
+          if(!this.isValidatePlay){
+            this.changePlaying(0)
+          }
+        },
         // 点击切换播放
         async changePlaying(i){
           // 切换索引
@@ -172,9 +178,10 @@ export default Vue.extend({
           })
           // console.log(result.data)
           if(result.data.status === 0){
-            if(result.data.message.pay_status === 0){
+            if(result.data.message.pay_status === 0){//未支付
               return Promise.resolve(false)
-            }else{
+            }else{//已支付
+              this.isValidatePlay = true
               return Promise.resolve(true)
             }
           }else{

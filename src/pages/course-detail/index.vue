@@ -126,11 +126,13 @@ export default Vue.extend({
                 uni.createVideoContext('videoID').play()
             },200)
         },
-        // 跳转到播放页面
+        // 跳转到播放页面----------这里可以在跳转时停止播放当前视频，但是更建议在生命周期钩子中停止播放------然而好像不太行
         gotoStudy(){
-            uni.navigateTo({
-              url:`/pages/play/index?id=${this.id}`
-            })
+          // 如果没有点击播放---视频没有被渲染出来不至于报错
+          uni.createVideoContext('videoID') && uni.createVideoContext('videoID').pause()
+          uni.navigateTo({
+            url:`/pages/play/index?id=${this.id}`
+          })
         },
         // 切换选中的索引
         toggleIndex(i){
