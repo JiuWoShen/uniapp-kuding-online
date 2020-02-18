@@ -25,6 +25,7 @@
               <stars :score="courseDetail.course.score" />
                 <text>{{courseDetail.course.study_count}}人在学</text>
             </view>
+            <!-- 开始学习按钮------点击跳转至播放详情页 -->
             <view class="study-share">
                 <image @click="gotoStudy" src="/static/images/start_study@2x.png" alt/>
                 <button open-type="share" class="share-button" plain></button>
@@ -127,7 +128,9 @@ export default Vue.extend({
         },
         // 跳转到播放页面
         gotoStudy(){
-            console.log('1111')
+            uni.navigateTo({
+              url:`/pages/play/index?id=${this.id}`
+            })
         },
         // 切换选中的索引
         toggleIndex(i){

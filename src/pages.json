@@ -26,6 +26,13 @@
 			"path": "pages/course-detail/index"
 		},
 		{
+			"path": "pages/play/index"
+		},
+		{
+			"path": "pages/pay/index",
+			"navigationBarTitleText":"支付"
+		},
+		{
 			"path": "pages/study/index"
 		},
 		{
