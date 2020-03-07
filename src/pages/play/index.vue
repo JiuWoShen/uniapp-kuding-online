@@ -22,6 +22,11 @@
               <image @click="evaluate" src="/static/images/evaluate@2x.png" alt />
             </view>
         </view>
+        <!-- 模态框-------控制子组件的显示与隐藏 -->
+        <Maldal :isVisible='isShowMaldal'>
+          <!-- 替换子组件插槽的内容 -->
+          <view @click="close" :isVisible='isShowMaldal'>111111</view>
+        </Maldal>
         <!-- 课程进度 -->
         <view class="course-progress">
           <view class="title">课程进度</view>
@@ -39,14 +44,19 @@
 <script>
 import Vue from 'vue'
 import {fetch} from '../../utils/fetch'
+import Maldal from '../../components/Modal'
 export default Vue.extend({
+    components:{
+      Maldal
+    },
     data(){
         return {
             id:null,// 当前课程的id
             course_detail:null,
             playingURL:null,
             playingIndex:0,  //现在播放的项
-            isValidatePlay:false//是否进行过校验
+            isValidatePlay:false,//是否进行过校验
+            isShowMaldal:false //是否显示模态框
         }
     },
     onLoad(options){
@@ -121,13 +131,38 @@ export default Vue.extend({
                 this.playingURL = result.data.message.videos[0].video_url
             }
         },
-        evaluate(){
-            console.log('111')
+        // 评价
+        async evaluate(){
+          // 判断课程是否学习完
+          const res = await fetch({
+            url:'study/complete',
+            data:{
+              course_id:this.id
+            }
+          })
+          if(res.data.status === 0){
+            if(!res.data.complete){//没有学习完
+              uni.showModal({
+                title: '提示',
+                content: '请先学习完毕，再来评价~',
+                showCancel:false,
+                confirmColor:'#ff9a29'
+              });
+            }
+            return 
+          }
+          // 弹出评价模态框
+          this.isShowMaldal = true
+
         },
         isPower(){
           if(!this.isValidatePlay){
             this.changePlaying(0)
           }
+        },
+        // 关闭模态框
+        close(){
+          this.isShowMaldal = false
         },
         // 点击切换播放
         async changePlaying(i){
